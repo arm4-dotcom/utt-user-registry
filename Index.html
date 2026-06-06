@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ลงทะเบียนผู้ใช้ระบบ UTT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(180deg, #0d1b35 0%, #111827 100%);
+      color: #e8f0fe;
+      min-height: 100vh;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 {
+      font-size: 22px; font-weight: 600; color: #ffffff; margin-bottom: 4px;
+    }
+    .header p { font-size: 13px; color: #8899bb; }
+    .greeting {
+      background: #1a2236; border-radius: 16px; padding: 16px;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+    }
+    .greeting-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      object-fit: cover; background: #2a3550; flex-shrink: 0;
+    }
+    .greeting-info { flex: 1; min-width: 0; }
+    .greeting-info p:first-child {
+      font-size: 12px; color: #8899bb; margin-bottom: 2px;
+    }
+    .greeting-info p:last-child {
+      font-size: 16px; font-weight: 500; color: #e8f0fe;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card {
+      background: #1a2236; border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      display: block; font-size: 13px; color: #8899bb; margin-bottom: 6px;
+    }
+    label .required { color: #FF6B6B; }
+    label .optional { color: #666; font-size: 11px; }
+    input {
+      width: 100%; padding: 12px 14px; background: #0d1b35;
+      border: 1px solid #2a3550; border-radius: 10px;
+      color: #e8f0fe; font-family: 'Sarabun', sans-serif; font-size: 15px;
+      outline: none; transition: border-color 0.2s;
+    }
+    input:focus { border-color: #00d4aa; }
+    input::placeholder { color: #4a5570; }
+    button {
+      width: 100%; padding: 14px; background: #00d4aa; border: none;
+      border-radius: 12px; color: #003a30;
+      font-family: 'Sarabun', sans-serif; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status {
+      margin-top: 16px; padding: 14px; border-radius: 12px;
+      font-size: 14px; text-align: center;
+    }
+    .status.success {
+      background: rgba(0, 212, 170, 0.12); color: #00d4aa;
+      border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+    .status.error {
+      background: rgba(255, 107, 107, 0.12); color: #FF6B6B;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+    .status.info {
+      background: rgba(255, 209, 102, 0.12); color: #FFD166;
+      border: 1px solid rgba(255, 209, 102, 0.3);
+    }
+    .loading {
+      text-align: center; padding: 40px 20px; color: #8899bb;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ลงทะเบียนผู้ใช้งาน</h1>
+      <p>ระบบ UTT · ลงทะเบียนครั้งเดียว ใช้ได้ทุก app</p>
+    </div>
+
+    <div id="loading" class="loading">กำลังโหลด...</div>
+
+    <div id="content" class="hidden">
+      <div class="greeting">
+        <img id="userAvatar" class="greeting-avatar" alt="" />
+        <div class="greeting-info">
+          <p>สวัสดี</p>
+          <p id="userDisplayName">—</p>
+        </div>
+      </div>
+
+      <div id="alreadyRegistered" class="status info hidden" style="margin-bottom:16px;margin-top:0;">
+        คุณลงทะเบียนแล้ว — หากต้องการแก้ไข กรุณากดส่งใหม่
+      </div>
+
+      <form id="registerForm" class="card" onsubmit="return false;">
+        <div class="form-group">
+          <label>ชื่อ <span class="required">*</span></label>
+          <input type="text" id="firstName" maxlength="50" required placeholder="เช่น สมชาย" />
+        </div>
+        <div class="form-group">
+          <label>นามสกุล <span class="required">*</span></label>
+          <input type="text" id="lastName" maxlength="50" required placeholder="เช่น ใจดี" />
+        </div>
+        <div class="form-group">
+          <label>เบอร์โทรศัพท์ <span class="optional">(ถ้ามี)</span></label>
+          <input type="tel" inputmode="tel" id="tel" maxlength="20" placeholder="เช่น 081-234-5678" />
+        </div>
+      </form>
+
+      <button id="submitBtn" type="button">ลงทะเบียน</button>
+
+      <div id="statusMsg" class="status hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── CONFIG ─────────────────────────────────────────────
+    // ⚠️ แก้ LIFF_ID หลังสร้าง LIFF app ใน LINE Developers (Step ถัดไป)
+    const LIFF_ID = 'PASTE_LIFF_ID_HERE';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzh1jV0kxLYhPH2rlJ8hPmz-rj5iYFGZba0s3fizEOXkP6bsHI9om3Rd6fDu7dH9WUc/exec';
+
+    // ── State ──────────────────────────────────────────────
+    let userProfile = null;
+    const $ = id => document.getElementById(id);
+
+    // ── Init ───────────────────────────────────────────────
+    async function init() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        userProfile = await liff.getProfile();
+
+        // Pre-populate UI
+        $('userDisplayName').textContent = userProfile.displayName || 'LINE User';
+        if (userProfile.pictureUrl) {
+          $('userAvatar').src = userProfile.pictureUrl;
+        } else {
+          $('userAvatar').style.display = 'none';
+        }
+
+        // เช็คว่าลงทะเบียนแล้วยัง — ถ้าใช่ pre-fill form
+        try {
+          const url = API_URL + '?action=lookup&user_id=' + encodeURIComponent(userProfile.userId);
+          const lookup = await fetch(url).then(r => r.json());
+          if (lookup.ok && lookup.found) {
+            $('firstName').value = lookup.first_name || '';
+            $('lastName').value  = lookup.last_name  || '';
+            $('tel').value       = lookup.tel || '';
+            $('submitBtn').textContent = 'อัปเดตข้อมูล';
+            $('alreadyRegistered').classList.remove('hidden');
+          }
+        } catch (e) {
+          console.warn('lookup failed:', e);
+        }
+
+        $('loading').classList.add('hidden');
+        $('content').classList.remove('hidden');
+      } catch (err) {
+        $('loading').textContent = 'เกิดข้อผิดพลาด: ' + err.message;
+      }
+    }
+
+    function showStatus(message, type) {
+      const el = $('statusMsg');
+      el.textContent = message;
+      el.className = 'status ' + type;
+      el.classList.remove('hidden');
+    }
+
+    // ── Submit ─────────────────────────────────────────────
+    $('submitBtn').addEventListener('click', async () => {
+      const firstName = $('firstName').value.trim();
+      const lastName  = $('lastName').value.trim();
+      const tel       = $('tel').value.trim();
+
+      if (!firstName) return showStatus('กรุณากรอกชื่อ', 'error');
+      if (!lastName)  return showStatus('กรุณากรอกนามสกุล', 'error');
+
+      const submitBtn = $('submitBtn');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'กำลังบันทึก...';
+      showStatus('กำลังบันทึก...', 'info');
+
+      try {
+        // text/plain เพื่อหลีกเลี่ยง CORS preflight
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            line_user_id:      userProfile.userId,
+            line_display_name: userProfile.displayName,
+            first_name:        firstName,
+            last_name:         lastName,
+            tel:               tel,
+          }),
+        });
+        const result = await res.json();
+
+        if (result.ok) {
+          const msg = result.action === 'created'
+            ? 'ลงทะเบียนสำเร็จ — สวัสดีคุณ ' + result.firstName + ' ' + result.lastName
+            : 'อัปเดตข้อมูลเรียบร้อย — คุณ ' + result.firstName + ' ' + result.lastName;
+          showStatus(msg + ' · ปิดหน้าต่างได้เลย', 'success');
+          submitBtn.textContent = '✓ ' + (result.action === 'created' ? 'ลงทะเบียนแล้ว' : 'อัปเดตแล้ว');
+          setTimeout(() => {
+            if (liff.isInClient && liff.isInClient()) liff.closeWindow();
+          }, 2500);
+        } else {
+          showStatus('เกิดข้อผิดพลาด: ' + (result.message || result.error || 'unknown'), 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      } catch (err) {
+        showStatus('เกิดข้อผิดพลาด: ' + err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
